@@ -1,7 +1,7 @@
 Projeto Salto Livre
 
 Um mini-jogo de plataforma infinita criado como uma atividade lúdica para uma Oficina de Software Livre realizada no meu ambiente de trabalho.
-🚀 Conceito
+ Conceito
 
 Salto Livre é uma metáfora para a jornada no universo do software livre. O jogador controla o Tux, o pinguim mascote do Linux, em uma subida infinita pelo mundo digital.
 
@@ -46,7 +46,7 @@ Itens e Obstáculos
 
         ⛓️ (DRM - Gestão de direitos digitais)
 
-🛠️ Tecnologias Utilizadas
+ Tecnologias Utilizadas
 
 Este jogo foi construído inteiramente com tecnologias abertas e padrões da web, reforçando o tema da oficina.
 
@@ -60,7 +60,7 @@ Este jogo foi construído inteiramente com tecnologias abertas e padrões da web
 
     Tone.js: Uma biblioteca para gerar os efeitos sonoros diretamente no navegador, sem a necessidade de arquivos de áudio.
 
-💻 Como Executar
+ Como Executar
 
 Você pode jogar diretamente no seu navegador através do link:
 
@@ -76,7 +76,7 @@ Ou, se preferir, pode executá-lo localmente:
 
     Abra este arquivo em qualquer navegador de internet moderno (Google Chrome, Firefox, Edge, etc.).
 
-✨ Créditos
+ Créditos
 
     Oficina e Conceito: Desenvolvido para uma oficina interna de software livre.
 
