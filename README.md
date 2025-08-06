@@ -1,53 +1,83 @@
-# Jogo da Memória - Desafio Software Livre
+Projeto Salto Livre
 
-Este é um simples e interativo Jogo da Memória criado como uma ferramenta de gamificação para a "Oficina de Software Livre", realizada no meu local de trabalho. O objetivo do jogo é ajudar os participantes a fixar conceitos e associações sobre softwares livres e seus propósitos de uma maneira divertida.
+Um mini-jogo de plataforma infinita criado como uma atividade lúdica para uma Oficina de Software Livre realizada no meu ambiente de trabalho.
+🚀 Conceito
 
-## ✨ Funcionalidades
+Salto Livre é uma metáfora para a jornada no universo do software livre. O jogador controla o Tux, o pinguim mascote do Linux, em uma subida infinita pelo mundo digital.
 
-- **Interface Limpa e Moderna:** Construído com Tailwind CSS para um visual agradável.
-- **Responsivo:** Funciona bem em desktops, tablets e smartphones.
-- **Contador de Tentativas:** Acompanha o número de jogadas do usuário.
-- **Animações Fluidas:** Efeitos de virar as cartas para uma experiência mais dinâmica.
-- **Feedback Imediato:** As cartas corretas ficam verdes e as incorretas viram de volta.
-- **Tela de Vitória:** Um modal parabeniza o jogador ao completar o desafio.
-- **Fácil de Reiniciar:** Um botão permite começar um novo jogo a qualquer momento.
+O objetivo é "progredir" (ganhar altura) coletando ferramentas de software livre e de código aberto, enquanto desvia dos "obstáculos" e problemas comuns do software proprietário, como custos, bugs, falta de segurança e restrições de uso (DRM).
+🎮 Como Jogar
 
-## 🚀 Como Usar
+A mecânica é simples e projetada para ser jogada em qualquer dispositivo com um navegador, especialmente em telas de toque.
 
-Este projeto consiste em um único arquivo `index.html`. Para executá-lo, basta:
+    Pulo Automático: O pinguim pula automaticamente sempre que aterrissa em uma plataforma.
 
-1.  Fazer o download do arquivo.
-2.  Abrir o arquivo `index.html` em qualquer navegador de internet moderno (como Chrome, Firefox, Edge, etc.).
+    Movimento Lateral: Toque no lado esquerdo ou direito da tela para mover o pinguim para a direção desejada enquanto ele está no ar.
 
-Não é necessário nenhum servidor ou processo de compilação.
+    Pulo Duplo: Após o primeiro pulo, toque no centro da tela para ganhar um impulso extra para cima. Você só pode usar um pulo duplo por salto.
 
-## 🔧 Personalização
+Itens e Obstáculos
 
-É muito fácil adaptar o jogo para outros temas ou adicionar mais pares de conceitos.
+    ✅ Coletáveis (Software Livre):
 
-1.  Abra o arquivo `index.html` em um editor de texto.
-2.  Navegue até a tag `<script>` no final do arquivo.
-3.  Encontre a constante `cardData`:
+        📄 (LibreOffice)
 
-    ```javascript
-    const cardData = [
-        { id: 1, content: 'LibreOffice', pairId: 1 }, { id: 2, content: 'Pacote de Escritório', pairId: 1 },
-        { id: 3, content: 'GIMP', pairId: 2 }, { id: 4, content: 'Editor de Imagens', pairId: 2 },
-        // ...outros pares
-    ];
-    ```
+        🎨 (GIMP/Inkscape)
 
-4.  Para alterar o conteúdo, simplesmente edite os valores de `content`.
-5.  Para adicionar um novo par, adicione dois novos objetos ao array, garantindo que eles compartilhem o mesmo `pairId` e tenham `id`s únicos. Por exemplo:
+        🐧 (Linux)
 
-    ```javascript
-     { id: 13, content: 'Audacity', pairId: 7 }, { id: 14, content: 'Editor de Áudio', pairId: 7 },
-    ```
+        >_ (Terminal/Shell)
 
-## 🛠️ Tecnologias Utilizadas
+        🦊 (Firefox)
 
-- **HTML5**
-- **CSS3**
-- **JavaScript (ES6)**
-- **[Tailwind CSS](https://tailwindcss.com/)** - Para estilização rápida da interface.
+        🎧 (Audacity)
 
+        🖌️ (Krita)
+
+    ❌ Obstáculos (Problemas):
+
+        💲 (Custos Altos)
+
+        🐛 (Bugs)
+
+        🔒 (Sistemas Fechados)
+
+        💀 (Spyware/Malware)
+
+        ⛓️ (DRM - Gestão de direitos digitais)
+
+🛠️ Tecnologias Utilizadas
+
+Este jogo foi construído inteiramente com tecnologias abertas e padrões da web, reforçando o tema da oficina.
+
+    HTML5: Estrutura base do jogo.
+
+    CSS3: Estilização da interface, utilizando Tailwind CSS para agilidade.
+
+    JavaScript (Vanilla): Toda a lógica do jogo, física e interatividade foram escritas em JavaScript puro, sem a necessidade de frameworks complexos.
+
+    HTML5 Canvas: Elemento utilizado para renderizar todos os gráficos e animações do jogo.
+
+    Tone.js: Uma biblioteca para gerar os efeitos sonoros diretamente no navegador, sem a necessidade de arquivos de áudio.
+
+💻 Como Executar
+
+Você pode jogar diretamente no seu navegador através do link:
+
+    fs-game.vercel.app
+
+Ou, se preferir, pode executá-lo localmente:
+
+    Copie todo o código do arquivo salto-livre-jogo.html.
+
+    Cole o conteúdo em um novo arquivo de texto.
+
+    Salve o arquivo com a extensão .html (ex: jogo.html).
+
+    Abra este arquivo em qualquer navegador de internet moderno (Google Chrome, Firefox, Edge, etc.).
+
+✨ Créditos
+
+    Oficina e Conceito: Desenvolvido para uma oficina interna de software livre.
+
+    Desenvolvimento do Jogo: Adaptado e criado para a oficina.
