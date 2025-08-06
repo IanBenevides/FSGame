@@ -140,24 +140,17 @@
         const restartButton = document.getElementById('restartButton');
 
         ctx.imageSmoothingEnabled = false;
-        ctx.webkitImageSmoothingEnabled = false; 
-        ctx.mozImageSmoothingEnabled = false;    
-        ctx.msImageSmoothingEnabled = false;     
 
         let aspectRatio = 9 / 16;
         let gameWidth, gameHeight;
 
         let player, platforms, softwareItems, obstacles, cameraY, score, collectedSoftware, gameState, particles;
-        let initialPlayerWorldY; 
-        let lastDividerY; 
-        let DIVIDER_INTERVAL_Y;
+        let initialPlayerWorldY, lastDividerY, DIVIDER_INTERVAL_Y;
         let lastPlatformHadObstacle = false;
         let lastGeneratedPlatformType = null;
-
-        const STAR_COUNT = 150;
         let stars = [];
 
-        const PLAYER_SETTINGS = {
+        const PLAYER_DEFAULTS = {
             widthRatio: 0.08, 
             speedRatio: 0.0095,
             jumpStrengthRatio: 0.018,
@@ -165,10 +158,9 @@
             gravityRatio: 0.00048,          
             boostJumpStrengthRatio: 0.032,
         };
-        let playerStats = {};
 
-        const SOFTWARE_SYMBOLS = ['📄', '🎨', '🐧', '>_']; // LibreOffice, GIMP, Linux, Terminal
-        const OBSTACLE_SYMBOLS = ['💲', '🐛', '🔒']; // Custo, Bug, Sistema Fechado
+        const SOFTWARE_SYMBOLS = ['📄', '🎨', '🐧', '>_', '🦊', '🎧', '🖌️'];
+        const OBSTACLE_SYMBOLS = ['💲', '🐛', '🔒', '💀', '⛓️'];
 
         let soundInitialized = false;
         let jumpSound, doubleJumpSound, collectSound, hurtSound, breakSound, boostSound;
@@ -177,28 +169,16 @@
             if (soundInitialized || typeof Tone === 'undefined') return;
             try {
                 await Tone.start();
-                jumpSound = new Tone.Synth({ oscillator: { type: "sine", }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 }, volume: -7 }).toDestination();
+                jumpSound = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 }, volume: -7 }).toDestination();
                 doubleJumpSound = new Tone.Synth({ oscillator: { type: "triangle", frequency: "D5" }, envelope: { attack: 0.005, decay: 0.08, sustain: 0.02, release: 0.1 }, volume: -9 }).toDestination();
                 collectSound = new Tone.Synth({ oscillator: { type: "square", frequency:"C6" }, envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }, volume: -10 }).toDestination();
                 hurtSound = new Tone.NoiseSynth({ noise: { type: "pink" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.1 }, volume: -6 }).toDestination();
                 breakSound = new Tone.MembraneSynth({ pitchDecay: 0.08, octaves: 2.5, envelope: { attack: 0.001, decay: 0.25, sustain: 0.01, release: 0.25}, volume: -9 }).toDestination();
                 boostSound = new Tone.Synth({ oscillator: { type: "pulse", width:0.4 }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.2 }, volume: -7 }).toDestination();
                 soundInitialized = true;
-            } catch (e) { console.error("Erro ao inicializar Tone.js:", e); }
+            } catch (e) { console.error("Falha ao iniciar Tone.js:", e); }
         }
-        document.body.addEventListener('click', initSounds, { once: true });
-        document.body.addEventListener('touchstart', initSounds, { once: true });
-
-        function calculatePlayerStats() {
-            playerStats.width = gameWidth * PLAYER_SETTINGS.widthRatio; 
-            playerStats.height = playerStats.width * 1.25;
-            playerStats.speed = gameWidth * PLAYER_SETTINGS.speedRatio;
-            playerStats.jumpStrength = gameHeight * PLAYER_SETTINGS.jumpStrengthRatio;
-            playerStats.doubleJumpStrength = gameHeight * PLAYER_SETTINGS.doubleJumpStrengthRatio;
-            playerStats.gravity = gameHeight * PLAYER_SETTINGS.gravityRatio; 
-            playerStats.boostJumpStrength = gameHeight * PLAYER_SETTINGS.boostJumpStrengthRatio;
-        }
-
+        
         function resizeGame() {
             const availableHeight = window.innerHeight;
             const availableWidth = window.innerWidth;
@@ -213,18 +193,17 @@
 
             canvas.width = gameWidth;
             canvas.height = gameHeight;
-            gameContainer.style.width = gameWidth + 'px';
-            gameContainer.style.height = gameHeight + 'px';
+            gameContainer.style.width = `${gameWidth}px`;
+            gameContainer.style.height = `${gameHeight}px`;
             
             DIVIDER_INTERVAL_Y = gameHeight * 1.0;
 
-            if(player) calculatePlayerStats();
             generateStars();
         }
 
         function generateStars() { 
             stars = [];
-            for (let i = 0; i < STAR_COUNT; i++) {
+            for (let i = 0; i < 150; i++) {
                 stars.push({
                     x: Math.random() * gameWidth,
                     y: Math.random() * gameHeight,
@@ -234,8 +213,8 @@
                 });
             }
         }
-
-        function drawStars() {
+        
+        function drawStars() { 
             ctx.save();
             stars.forEach(star => {
                 const parallaxY = star.y + cameraY * star.speedFactor;
@@ -247,21 +226,30 @@
             });
             ctx.restore();
         }
-        
+
         function initGame() {
-            player = {};
             resizeGame(); 
             
-            player.x = gameWidth / 2 - playerStats.width / 2;
-            player.y = gameHeight - playerStats.height - (gameHeight * 0.05); 
-            player.width = playerStats.width;   
-            player.height = playerStats.height; 
-            player.vx = 0;
-            player.vy = 0;
-            player.canDoubleJump = false;
-
+            player = {
+                width: gameWidth * PLAYER_DEFAULTS.widthRatio,
+                height: (gameWidth * PLAYER_DEFAULTS.widthRatio) * 1.25,
+                speed: gameWidth * PLAYER_DEFAULTS.speedRatio,
+                jumpStrength: gameHeight * PLAYER_DEFAULTS.jumpStrengthRatio,
+                doubleJumpStrength: gameHeight * PLAYER_DEFAULTS.doubleJumpStrengthRatio,
+                gravity: gameHeight * PLAYER_DEFAULTS.gravityRatio,
+                boostJumpStrength: gameHeight * PLAYER_DEFAULTS.boostJumpStrengthRatio,
+                vx: 0,
+                vy: 0,
+                canDoubleJump: false,
+            };
+            player.x = gameWidth / 2 - player.width / 2;
+            player.y = gameHeight - player.height - (gameHeight * 0.05); 
+            
             initialPlayerWorldY = player.y;
-            platforms = []; softwareItems = []; obstacles = [];
+            platforms = []; 
+            softwareItems = []; 
+            obstacles = [];
+            particles = [];
             
             generateInitialPlatforms();
             lastDividerY = platforms[0].y;
@@ -274,10 +262,12 @@
                 let shouldForceDivider = (lastDividerY - nextY) >= DIVIDER_INTERVAL_Y;
                 generateNewElements(nextY, false, shouldForceDivider);
             }
+            
             cameraY = player.y - gameHeight * 0.65;
-            score = 0; collectedSoftware = 0; gameState = 'playing';
+            score = 0; 
+            collectedSoftware = 0; 
+            gameState = 'playing';
             messageOverlay.style.display = 'none';
-            particles = [];
             updateHUD();
         }
 
@@ -301,9 +291,8 @@
 
         function generateNewElements(yPos, isInitial = false, forceDivider = false) {
             if (forceDivider) {
-                const dividerHeight = gameHeight * 0.05; 
                 platforms.push({
-                    x: 0, y: yPos, width: gameWidth, height: dividerHeight,
+                    x: 0, y: yPos, width: gameWidth, height: gameHeight * 0.05,
                     type: 'divider', 
                     color: PLATFORM_COLORS.divider.main, borderColor: PLATFORM_COLORS.divider.border, shadowColor: PLATFORM_COLORS.divider.shadow,
                     isBroken: false, breakTimer: 0, hasObstacle: false
@@ -315,33 +304,25 @@
             }
 
             const platformTypeRoll = Math.random();
-            let platformType = 'normal';
-            if (!isInitial) { 
-                if (platformTypeRoll < 0.15 && lastGeneratedPlatformType !== 'breakable') {
-                    platformType = 'breakable';
-                } else if (platformTypeRoll < 0.40) { 
-                     platformType = 'boost';  
-                }
-            }
+            let platformType = (platformTypeRoll < 0.15 && lastGeneratedPlatformType !== 'breakable') ? 'breakable' 
+                             : (platformTypeRoll < 0.40) ? 'boost' 
+                             : 'normal';
 
-            const minWidth = gameWidth * 0.22; 
-            const maxWidth = gameWidth * 0.55; 
-            const platformWidth = (Math.random() * (maxWidth - minWidth) + minWidth);
+            const platformWidth = (Math.random() * (gameWidth * 0.33)) + (gameWidth * 0.22);
             const platformHeight = gameHeight * 0.038; 
-            const platformX = (Math.random() * (gameWidth - platformWidth));
+            const platformX = Math.random() * (gameWidth - platformWidth);
             const colorSet = PLATFORM_COLORS[platformType];
 
             const newPlatform = {
                 x: platformX, y: yPos, width: platformWidth, height: platformHeight,
                 type: platformType, 
                 color: colorSet.main, borderColor: colorSet.border, shadowColor: colorSet.shadow,
-                isBroken: false, breakTimer: 0,
-                hasObstacle: false 
+                isBroken: false, breakTimer: 0, hasObstacle: false 
             };
             platforms.push(newPlatform);
             lastGeneratedPlatformType = platformType;
 
-            if (platformType === 'normal' && !isInitial && !lastPlatformHadObstacle && Math.random() < 0.20) {
+            if (platformType === 'normal' && !lastPlatformHadObstacle && Math.random() < 0.20) {
                 newPlatform.hasObstacle = true;
                 newPlatform.obstacleSymbol = OBSTACLE_SYMBOLS[Math.floor(Math.random() * OBSTACLE_SYMBOLS.length)];
                 lastPlatformHadObstacle = true;
@@ -366,19 +347,16 @@
             const bodyWidth = player.width * 0.9;
             const bodyHeight = player.height * 0.95;
             
-            // Corpo do Pinguim
-            ctx.fillStyle = '#2c3e50'; // Preto
+            ctx.fillStyle = '#2c3e50';
             ctx.beginPath();
             ctx.ellipse(player.width / 2, player.height / 2, bodyWidth / 2, bodyHeight / 2, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Barriga
             ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.ellipse(player.width / 2, player.height * 0.6, bodyWidth / 2.5, bodyHeight / 2.5, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Olhos (Novo design)
             const eyeY = player.height * 0.35;
             const eyeWidth = player.width * 0.08;
             const eyeHeight = player.height * 0.12;
@@ -390,9 +368,8 @@
             ctx.ellipse(player.width * 0.65, eyeY, eyeWidth, eyeHeight, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Bico
             const beakY = player.height * 0.5;
-            ctx.fillStyle = '#f39c12'; // Laranja
+            ctx.fillStyle = '#f39c12';
             ctx.beginPath();
             ctx.moveTo(player.width / 2, beakY);
             ctx.lineTo(player.width * 0.35, beakY + player.height * 0.1);
@@ -407,12 +384,9 @@
             platforms.forEach(p => {
                 if (p.y - cameraY > gameHeight || p.y + p.height - cameraY < 0) return;
                 
-                let platformColor = p.color;
-                if (p.type === 'breakable' && p.isBroken) {
-                    platformColor = PLATFORM_COLORS.breakable.brokenColor;
-                }
+                let platformColor = p.isBroken ? PLATFORM_COLORS.breakable.brokenColor : p.color;
                 
-                ctx.shadowColor = p.shadowColor || '#0AF';
+                ctx.shadowColor = p.isBroken || p.type === 'divider' ? 'transparent' : (p.shadowColor || '#0AF');
                 ctx.shadowBlur = p.isBroken || p.type === 'divider' ? 0 : 10; 
                 
                 ctx.fillStyle = platformColor;
@@ -428,10 +402,10 @@
 
                 if (p.hasObstacle) {
                     ctx.fillStyle = '#FF4136';
-                    ctx.font = `${playerStats.height * 0.7}px 'Press Start 2P'`;
+                    ctx.font = `${player.height * 0.7}px 'Press Start 2P'`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    const obstacleY = p.y - cameraY - playerStats.height * 0.4;
+                    const obstacleY = p.y - cameraY - player.height * 0.4;
                     ctx.fillText(p.obstacleSymbol, p.x + p.width / 2, obstacleY);
                 }
             });
@@ -448,23 +422,6 @@
             });
         }
         
-        function emitParticles() {
-            if (player.vy < 0 ) {
-                const particleCount = 3; 
-                for (let i = 0; i < particleCount; i++) {
-                    const pColor = (Math.random() < 0.5) ? `rgba(0,220,255,${0.5 + Math.random()*0.4})` : `rgba(255,255,255,${0.4 + Math.random()*0.3})`; 
-                    particles.push({
-                        x: player.x + player.width / 2 + (Math.random() - 0.5) * (player.width * 0.4),
-                        y: player.y + player.height,
-                        radius: Math.random() * 2 + 1.5, 
-                        vx: (Math.random() - 0.5) * (playerStats.speed * 0.25),
-                        vy: (Math.random() * 0.5 + 0.5) * (playerStats.jumpStrength * 0.05),
-                        life: 20 + Math.random() * 20, 
-                        color: pColor
-                    });
-                }
-            }
-        }
         function updateParticles() { 
              for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
@@ -477,6 +434,7 @@
                 }
             }
         }
+
         function drawParticles() { 
             particles.forEach(p => {
                 if (p.y - cameraY > gameHeight || p.y + p.radius*2 - cameraY < 0) return;
@@ -490,7 +448,6 @@
         function update() {
             if (gameState !== 'playing') return;
 
-            // Movimento horizontal
             if (player.vx) {
                 player.x += player.vx;
                 if (player.x <= 0) {
@@ -503,13 +460,12 @@
                 }
             }
 
-            player.vy += playerStats.gravity;
+            player.vy += player.gravity;
             player.y += player.vy;
 
             platforms.forEach(p => {
                 if (p.type === 'breakable' && p.isBroken && p.breakTimer <= 0) return; 
 
-                // Verifica colisão apenas quando o jogador está caindo
                 if (player.vy >= 0 && 
                     player.x + player.width > p.x && 
                     player.x < p.x + p.width &&
@@ -517,21 +473,30 @@
                     player.y + player.height < p.y + p.height + player.vy) {
                     
                     player.y = p.y - player.height;
-                    player.canDoubleJump = true; // Habilita o pulo duplo
+                    player.canDoubleJump = true;
                     
-                    // Pulo constante ao aterrissar
-                    player.vy = -playerStats.jumpStrength;
-                    if (soundInitialized && jumpSound) jumpSound.triggerAttackRelease("C4", "16n", Tone.now());
+                    player.vy = -player.jumpStrength;
+                    if (soundInitialized) jumpSound.triggerAttackRelease("C4", "16n", Tone.now());
 
                     if (p.type === 'breakable' && !p.isBroken) {
                         p.isBroken = true; 
                         p.breakTimer = 240;
-                        if (soundInitialized && breakSound) breakSound.triggerAttackRelease("B1", "8n", Tone.now());
+                        if (soundInitialized) breakSound.triggerAttackRelease("B1", "8n", Tone.now());
                     } else if (p.type === 'boost') {
-                        player.vy = -playerStats.boostJumpStrength;
-                        if (soundInitialized && boostSound) boostSound.triggerAttackRelease("A3", "8n", Tone.now() + 0.01); 
+                        player.vy = -player.boostJumpStrength;
+                        if (soundInitialized) boostSound.triggerAttackRelease("A3", "8n", Tone.now() + 0.01); 
                     }
-                    if (p.hasObstacle) takeDamage(`Cuidado com ${p.obstacleSymbol === '💲' ? 'os custos' : p.obstacleSymbol === '🐛' ? 'os bugs' : 'sistemas fechados'}!`); 
+                    if (p.hasObstacle) {
+                        let reason = "um obstáculo";
+                        switch (p.obstacleSymbol) {
+                            case '💲': reason = "os custos altos"; break;
+                            case '🐛': reason = "os bugs"; break;
+                            case '🔒': reason = "sistemas fechados"; break;
+                            case '💀': reason = "o spyware"; break;
+                            case '⛓️': reason = "o DRM"; break;
+                        }
+                        takeDamage(`Cuidado com ${reason}!`);
+                    }
                 }
                 if (p.type === 'breakable' && p.isBroken && p.breakTimer > 0) p.breakTimer--;
             });
@@ -542,7 +507,7 @@
                     player.y < item.y + item.size / 2 && player.y + player.height > item.y - item.size / 2) {
                     softwareItems.splice(i, 1);
                     collectedSoftware++;
-                    if (soundInitialized && collectSound) collectSound.triggerAttackRelease("B5", "24n", Tone.now()); 
+                    if (soundInitialized) collectSound.triggerAttackRelease("B5", "24n", Tone.now()); 
                     updateHUD();
                 }
             }
@@ -564,14 +529,28 @@
 
             score = Math.max(0, Math.floor((initialPlayerWorldY - player.y) / 10));
             updateHUD();
-            emitParticles(); updateParticles();
+            
+            if (player.vy < 0 ) {
+                for (let i = 0; i < 3; i++) {
+                    particles.push({
+                        x: player.x + player.width / 2 + (Math.random() - 0.5) * (player.width * 0.4),
+                        y: player.y + player.height,
+                        radius: Math.random() * 2 + 1.5, 
+                        vx: (Math.random() - 0.5) * (player.speed * 0.25),
+                        vy: (Math.random() * 0.5 + 0.5) * (player.jumpStrength * 0.05),
+                        life: 20 + Math.random() * 20, 
+                        color: (Math.random() < 0.5) ? `rgba(0,220,255,${0.5 + Math.random()*0.4})` : `rgba(255,255,255,${0.4 + Math.random()*0.3})`
+                    });
+                }
+            }
+            updateParticles();
             
             if (player.y - cameraY > gameHeight + player.height * 1.5) gameOver("Perdido no código proprietário!");
         }
         
         function takeDamage(reason) {
             if (gameState !== 'playing') return;
-            if (soundInitialized && hurtSound) hurtSound.triggerAttackRelease("16n", Tone.now()); 
+            if (soundInitialized) hurtSound.triggerAttackRelease("16n", Tone.now()); 
             gameOver(reason);
         }
 
@@ -585,15 +564,13 @@
             const centerZoneEnd = gameWidth * 0.7;
 
             if (touchX > centerZoneStart && touchX < centerZoneEnd) {
-                // Pulo duplo
                 if (player.canDoubleJump) {
-                    player.vy = -playerStats.doubleJumpStrength;
+                    player.vy = -player.doubleJumpStrength;
                     player.canDoubleJump = false;
-                    if (soundInitialized && doubleJumpSound) doubleJumpSound.triggerAttackRelease("G4", "16n", Tone.now());
+                    if (soundInitialized) doubleJumpSound.triggerAttackRelease("G4", "16n", Tone.now());
                 }
             } else {
-                // Controle de direção
-                player.vx = (touchX > gameWidth / 2 ? 1 : -1) * playerStats.speed;
+                player.vx = (touchX > gameWidth / 2 ? 1 : -1) * player.speed;
             }
         }
 
@@ -606,8 +583,8 @@
         }
         
         function updateHUD() {
-            if (scoreDisplay) scoreDisplay.textContent = `Progresso: ${score}Kb`;
-            if (softwareCountDisplay) softwareCountDisplay.textContent = collectedSoftware;
+            scoreDisplay.textContent = `Progresso: ${score}Kb`;
+            softwareCountDisplay.textContent = collectedSoftware;
         }
 
         function draw() {
@@ -624,8 +601,7 @@
         }
         
         let lastTime = 0; 
-        const targetFPS = 60; 
-        const frameInterval = 1000 / targetFPS;
+        const frameInterval = 1000 / 60;
         function gameLoop(currentTime) {
             requestAnimationFrame(gameLoop);
             const deltaTime = currentTime - lastTime;
@@ -636,6 +612,8 @@
             }
         }
 
+        document.body.addEventListener('click', initSounds, { once: true });
+        document.body.addEventListener('touchstart', initSounds, { once: true });
         touchControl.addEventListener('mousedown', (e) => { e.preventDefault(); handleTouch(e); }); 
         touchControl.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouch(e); });
         
